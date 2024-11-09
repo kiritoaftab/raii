@@ -13,12 +13,16 @@ import { useCreateWorkspace } from "../api/use-create-workspace";
 import Image from "next/image";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ImageIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 interface CreateWorkspaceFormProps {
     onCancel? : () => void;
 };
 
 export const CreateWorkspaceForm = ({onCancel}: CreateWorkspaceFormProps) => {
+
+    const router = useRouter();
 
     const {mutate, isPending} = useCreateWorkspace();
 
@@ -39,9 +43,9 @@ export const CreateWorkspaceForm = ({onCancel}: CreateWorkspaceFormProps) => {
         }
 
         mutate({form:finalValues},
-            {onSuccess : () => {
+            {onSuccess : ({data}) => {
                 form.reset();
-                // TODO: redirect to new workspace
+                router.push(`/workspaces/${data.$id}`)
              }
             }
             )
@@ -122,7 +126,24 @@ export const CreateWorkspaceForm = ({onCancel}: CreateWorkspaceFormProps) => {
                                                         disabled={isPending}
                                                         onChange={handleImageChange}
                                                     />
-                                                    <Button 
+                                                    {field.value ? (
+                                                        <Button 
+                                                        type="button"
+                                                        disabled={isPending}
+                                                        variant="destructive"
+                                                        size="xs"
+                                                        className="w-fit mt-2"
+                                                        onClick={()=> {
+                                                            field.onChange(null);
+                                                            if(inputRef.current){
+                                                                inputRef.current.value = "";
+                                                            }
+                                                        }}
+                                                    >
+                                                        Remove Image
+                                                    </Button>
+                                                    ): (
+                                                        <Button 
                                                         type="button"
                                                         disabled={isPending}
                                                         variant="teritary"
@@ -132,6 +153,8 @@ export const CreateWorkspaceForm = ({onCancel}: CreateWorkspaceFormProps) => {
                                                     >
                                                         Upload Image
                                                     </Button>
+                                                    )}
+                                                    
                                                 </div>
                                             </div>
                                         </div>
@@ -140,7 +163,9 @@ export const CreateWorkspaceForm = ({onCancel}: CreateWorkspaceFormProps) => {
                             </div>
                             <DottedSeparator className="py-7"/>
                             <div className="flex items-center justify-between">
-                                <Button type="button" size="lg" variant="secondary" onClick={onCancel} disabled={isPending}>
+                                <Button type="button" size="lg" variant="secondary" onClick={onCancel} disabled={isPending}
+                                    className={cn(!onCancel && "invisible")}
+                                >
                                     Cancel
                                 </Button>
                                 <Button type="submit" size="lg" disabled={isPending} >
